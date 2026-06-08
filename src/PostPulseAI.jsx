@@ -267,24 +267,14 @@ Respond ONLY with a valid JSON object. No markdown fences. No preamble. No trail
 }`;
 
     try {
-      const res = await fetch("/api/anthropic/v1/messages", {
+      const res = await fetch("/api/analyze", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY || "",
-          "anthropic-version": "2023-06-01",
-        },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1800,
-          messages: [{ role: "user", content: prompt }],
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error?.message || "Analysis failed");
-      const raw = data.content?.map(b => b.text || "").join("").trim();
-      const clean = raw.replace(/^```json\s*/i, "").replace(/```$/i, "").trim();
-      const parsed = JSON.parse(clean);
+      if (!res.ok) throw new Error(data.error || "Analysis failed");
+      const parsed = JSON.parse(data.raw);
       setResult(parsed);
       onSave({
         post: post.slice(0, 120) + (post.length > 120 ? "…" : ""),
